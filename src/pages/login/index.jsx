@@ -2,7 +2,8 @@ import React, {Component} from 'react';
 import {
   Form, Icon, Input, Button, message
 } from 'antd';
-import { reqLogin } from '../../api'
+import { reqLogin } from '../../api';
+import { setItem } from '../../utils/storage-utils'
 
 import logo from './logo.png';
 import './index.less';
@@ -27,7 +28,7 @@ class Login extends Component {
       // console.log(err, values);
       if (!err) {
         //校验成功
-        // console.log( values);
+        console.log( values);
         const { username, password } = values;
         const result = await reqLogin(username, password);
         console.log('result', result);
@@ -36,6 +37,8 @@ class Login extends Component {
           //登录成功
           //提示登录成功，保存用户信息，跳转到主页面
           message.success('登录成功~');
+          //保存用户数据
+          setItem(result.data);
           //已经登录成功，不需要回退了
           this.props.history.replace('/')
         } else {
