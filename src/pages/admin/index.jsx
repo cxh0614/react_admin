@@ -6,6 +6,7 @@ import Home from '../home';
 import Category from '../category';
 import Product from '../product';
 import LeftNav from '$comp/lef-nav';
+import HeaderMain from '$comp/header-main';
 import { getItem } from '$utils/storage-utils';
 import memory from '$utils/memory-utils';
 
@@ -61,7 +62,9 @@ export default class Admin extends Component {
          <LeftNav opacity={opacity}/>
         </Sider>
         <Layout>
-          <Header style={{ background: '#fff', padding: 0 }} />
+          <Header style={{ background: '#fff', padding: 0, height: 100 }}>
+          <HeaderMain />
+          </Header>
           <Content style={{ margin: '20px 16px' }}>
             <div style={{ padding: 24, background: '#fff', minHeight: 360 }}>
               <Route path='/home' component={ Home } />
