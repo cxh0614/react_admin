@@ -28,7 +28,7 @@ class Login extends Component {
       // console.log(err, values);
       if (!err) {
         //校验成功
-        console.log( values);
+        // console.log( values);
         const { username, password } = values;
         const result = await reqLogin(username, password);
         console.log('result', result);
@@ -78,8 +78,8 @@ class Login extends Component {
     return (
       <div className="login">
         <header className="login-header">
-        <img src={logo} alt="logo"/>
-        <h1>React项目：后台管理系统</h1>
+          <img src={logo} alt="logo"/>
+          <h1>React项目：后台管理系统</h1>
         </header>
         <section className="login-content">
           <h3>用户登录</h3>

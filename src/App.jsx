@@ -3,7 +3,7 @@ import { Route, Switch, Redirect } from 'react-router-dom';
 
 import Login from './pages/login';
 import Admin from './pages/admin';
-import './assets/reset.less'
+import './assets/less/reset.less'
 
 export default class App extends Component {
   render() {

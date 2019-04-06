@@ -1,16 +1,13 @@
 import React, {Component} from 'react';
-import { Route, Link } from 'react-router-dom';
+import { Route } from 'react-router-dom';
 import { Layout } from 'antd';
 
 import Home from '../home';
 import Category from '../category';
 import Product from '../product';
-
-import { getItem } from '../../utils/storage-utils';
-import memory from '../../utils/memory-utils';
-import LeftNav from '../../components/lef-nav';
-import logo from '../../assets/images/logo.png'
-import './index.less'
+import LeftNav from '$comp/lef-nav';
+import { getItem } from '$utils/storage-utils';
+import memory from '$utils/memory-utils';
 
 
 const {
@@ -28,6 +25,9 @@ export default class Admin extends Component {
     this.state = {
       collapsed: false,
     };
+
+    this.createRef = React.createRef();
+
     //判断用户是否登录
     const user = getItem();
     if (!user || !user._id) {
@@ -38,16 +38,19 @@ export default class Admin extends Component {
     memory.user = user;
   }
 
-  
-
   onCollapse = (collapsed) => {
-    console.log(collapsed);
+    // console.log(collapsed);
     this.setState({ collapsed });
+  }
+
+  handleClick = () => {
+    console.log(this.createRef.current)
   }
 
   render() {
     const { collapsed } = this.state;
     const opacity = collapsed ? 0 : 1;
+
     return (
       <Layout style={{ minHeight: '100vh' }}>
         <Sider
@@ -55,11 +58,7 @@ export default class Admin extends Component {
           collapsed={collapsed}
           onCollapse={this.onCollapse}
         >
-        <Link to='/home' className="logo">
-        <img src={ logo } alt="logo"/>
-        <h1 style={{opacity}}>硅谷后台</h1>
-        </Link>
-        <LeftNav />
+         <LeftNav opacity={opacity}/>
         </Sider>
         <Layout>
           <Header style={{ background: '#fff', padding: 0 }} />

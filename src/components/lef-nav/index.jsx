@@ -1,7 +1,11 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
+import PropTypes from 'prop-types';
+import { Link, withRouter } from 'react-router-dom';
 import { Menu, Icon, } from 'antd';
-import { Link, withRouter } from 'react-router-dom'
 
+import menuList from '../../config/menu-config'; 
+import logo from '../../assets/images/logo.png';
+import './index.less'
 
 const SubMenu = Menu.SubMenu;
 const Item = Menu.Item;
@@ -10,59 +14,80 @@ const Item = Menu.Item;
 //withRouter作用： 给非路由组件传递路由组件三个属性（history,location,match）
 @withRouter
 class LeftNav extends Component {
-  render() {
+
+  static propTypes = {
+    opacity: PropTypes.number.isRequired
+  }
+
+  constructor(props) {
+    super(props);
+    //创建菜单
+    const openKeys = [];
+    this.menus = this.createMenu(menuList, openKeys);
+    this.state = {
+      openKeys
+    }
+  }
+
+  createItem(item) {
+    return <Item key={item.key}>
+    <Link to={item.key}>
+      <Icon type={item.icon} />
+      <span>{item.title}</span> 
+    </Link>
+  </Item>
+  }
+
+  //创建菜单项的函数
+  createMenu(menuList, openKeys) {
+    //判断是一级菜单还是二级菜单
     const { pathname } = this.props.location;
+    return menuList.map((menu) => {
+      const children = menu.children;
+      if (children) {
+        //二级菜单
+        return <SubMenu
+          key={menu.key}
+          title={<span><Icon type={menu.icon} /><span>{menu.title}</span></span>}
+        >
+        {
+          children.map((item) => {
+            if (pathname === item.key) {
+              openKeys.push(menu.key)
+            }
+            return this.createItem(item)
+          })
+        }
+        </SubMenu>
+      } else {
+        //一级菜单
+        return this.createItem(menu);
+      }
+    })
+  }
+
+  handleOpenChange = (openKeys) => {
+    this.setState({openKeys})
+  }
+
+  handleClick = () => {
+    this.setState({openKeys: []})
+  }
+
+  render() {
+    const { opacity, location: {pathname} } = this.props;
     return (
-      <Menu theme="dark" defaultSelectedKeys={[pathname]} mode="inline" defaultOpenKeys={['sub1']}>
-      <Item key="/home">
-      <Link to='/home'>
-        <Icon type="home" />
-        <span>首页</span>
-      </Link>
-      </Item>
-      <SubMenu
-        key="sub1"
-        title={<span><Icon type="appstore" /><span>商品</span></span>}
-      >
-        <Item key="/category">
-          <Link to='/category'>
-            <Icon type="bars" />
-            <span>品类管理</span>
-          </Link>
-        </Item>
-        <Item key="/product">
-          <Link to='/product'>
-            <Icon type="tool" />
-            <span>商品管理</span>
-          </Link>
-        </Item>
-      </SubMenu>
-      <Item key="4">
-        <Icon type="user" />
-        <span>用户管理</span>
-      </Item>
-      <Item key="5">
-        <Icon type="safety-certificate" />
-        <span>权限管理</span>
-      </Item>
-      <SubMenu
-        key="sub2"
-        title={<span><Icon type="area-chart" /><span>图形图表</span></span>}
-      >
-        <Item key="6">
-          <Icon type="bar-chart" />
-          <span>柱形图</span>
-        </Item>
-        <Item key="7">
-          <Icon type="line-chart" />
-          <span>折线图</span>
-        </Item>
-        <Item key="8">
-          <Icon type="pie-chart" />
-          <span>饼图</span>
-        </Item>
-      </SubMenu>
-    </Menu>
+      <Fragment>
+        <Link to='/home' className="logo" onClick={this.handleClick}>
+          <img src={ logo } alt="logo"/>
+          <h1 style={{opacity}}>硅谷后台</h1>
+        </Link>
+        <Menu theme="dark" selectedKeys={[pathname]} mode="inline" openKeys={this.state.openKeys} onOpenChange={this.handleOpenChange}>
+          {
+            this.menus
+          }
+        </Menu>
+      </Fragment>
     )
   }
 }

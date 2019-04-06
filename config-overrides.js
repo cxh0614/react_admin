@@ -1,4 +1,5 @@
-const { override, fixBabelImports, addLessLoader, addBabelPlugins } = require('customize-cra');
+const { resolve } = require('path');
+const { override, fixBabelImports, addLessLoader, addDecoratorsLegacy, addWebpackAlias } = require('customize-cra');
 
 module.exports = override(
   //按需加载
@@ -13,12 +14,19 @@ module.exports = override(
     modifyVars: { '@primary-color': '#1DA57A' },
  }),
  // 编译装饰器语法
-  addBabelPlugins(
-    [
-      "@babel/plugin-proposal-decorators",
-      {
-        "legacy": true
-      }
-    ]
-  )
+  // addBabelPlugins(
+  //   [
+  //     "@babel/plugin-proposal-decorators",
+  //     {
+  //       "legacy": true
+  //     }
+  //   ]
+  // )
+  addDecoratorsLegacy(),
+  addWebpackAlias({
+    $utils: resolve(__dirname, 'src/utils'),
+    $api: resolve(__dirname, 'src/api'),
+    $assets: resolve(__dirname, 'src/assets'),
+    $comp: resolve(__dirname, 'src/components'),
+  })
 );
