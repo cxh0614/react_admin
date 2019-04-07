@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import { Route } from 'react-router-dom';
+import { Route, Switch, Redirect } from 'react-router-dom';
 import { Layout } from 'antd';
 
 import Home from '../home';
@@ -67,9 +67,12 @@ export default class Admin extends Component {
           </Header>
           <Content style={{ margin: '20px 16px' }}>
             <div style={{ padding: 24, background: '#fff', minHeight: 360 }}>
-              <Route path='/home' component={ Home } />
-              <Route path='/category' component={ Category } />
-              <Route path='/product' component={ Product } />
+              <Switch>
+                <Route path='/home' component={ Home } />
+                <Route path='/category' component={ Category } />
+                <Route path='/product' component={ Product } />
+                <Redirect to='/home'/>
+              </Switch>
             </div>
           </Content>
           <Footer style={{ textAlign: 'center' }}>
