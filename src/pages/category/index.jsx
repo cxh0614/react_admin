@@ -1,16 +1,23 @@
 import React, { Component } from 'react';
-import { Card, Button, Icon, Table, message } from 'antd';
+import { Card, Button, Icon, Table, message, Modal } from 'antd';
 
+import AddCategoryForm from './add-category-form';
 import MyButton from '$comp/my-button';
 import { reqGetCategories } from '$api'
 import './index.less'
 
 export default class Category extends Component {
 
-  state = {
-    categories: [] //一级分类数据
+  constructor(props) {
+    super(props);
+    this.state = {
+      categories: [], //一级分类数据
+      isShowAddCategoryModal: false,
+    }
+    this.createAddForm = React.createRef();
   }
 
+  //定义表格列
   columns = [
     {
       title: '品类名称', //表头名称
@@ -45,17 +52,42 @@ export default class Category extends Component {
     this.getCategroies('0');
   }
 
+  addCategory = () => {
+    // 获取的是普通的虚拟DOM对象，它的值就是Dom元素
+    // 获取的是组件，它的值就是组件的实例对象
+    // console.log(this.createAddForm.current)
+    const { validateFields } = this.createAddForm.current.props.form;
+    // 表单校验的方法
+    validateFields((err, values) => {
+      console.log(err, values);
+      if (!err) {
+        // 校验成功  --> 发送请求 添加分类数据 、隐藏对话框、提示添加分类成功
+
+      } else {
+        // 校验失败 -- 啥也不做
+      }
+    })
+  }
+
+  // 切换对话框显示/隐藏的方法
+  changeModal = (isShow) => {
+    return () => {
+      this.setState({
+        isShowAddCategoryModal: isShow
+      })
+    }
+  }
+
   render() {
     //定义表格的列
     
-    
-    const { categories } = this.state;
+    const { categories, isShowAddCategoryModal } = this.state;
 
     return (
       <Card
       className="category"
       title="一级分类列表"
-      extra={<Button type="primary"><Icon type="plus" />添加品类</Button>}
+      extra={<Button type="primary" onClick={this.changeModal(true)}><Icon type="plus" />添加品类</Button>}
       >
       <Table
         columns={this.columns}
@@ -69,6 +101,17 @@ export default class Category extends Component {
         }}
         rowKey="_id"
       />
+
+      <Modal
+          title="添加分类"
+          visible={isShowAddCategoryModal}
+          onOk={this.addCategory}
+          onCancel={this.changeModal(false)}
+          okText="确认"
+          cancelText="取消"
+        >
+          <AddCategoryForm categories={categories} wrappedComponentRef={this.createAddForm}/>
+        </Modal>
       </Card>
     )
   }
