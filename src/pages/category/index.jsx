@@ -2,19 +2,22 @@ import React, { Component } from 'react';
 import { Card, Button, Icon, Table, message, Modal } from 'antd';
 
 import AddCategoryForm from './add-category-form';
+import UpdateCategoryNameForm from './update-category-name-form';
 import MyButton from '$comp/my-button';
-import { reqGetCategories } from '$api'
+import { reqGetCategories, reqAddCategory, reqUpdateCategoryName } from '$api'
 import './index.less'
 
 export default class Category extends Component {
-
   constructor(props) {
     super(props);
     this.state = {
       categories: [], //一级分类数据
-      isShowAddCategoryModal: false,
+      isShowAddCategoryModal: false, //添加分类对话框显示
+      isShowUpdateCategoryNameModal: false, //修改分类名称对话框显示
+      category: {}, //要操作分类数据
     }
     this.createAddForm = React.createRef();
+    this.createUpdateForm = React.createRef();
   }
 
   //定义表格列
@@ -27,13 +30,25 @@ export default class Category extends Component {
     {
       title: '操作',
       className: 'operator',
-      dataIndex: 'operator',
-      render: text =><div>
-        <MyButton>修改名称</MyButton>
+      // dataIndex: 'operator', //render 方法不能和 dataIndex属性共存。 这样会导致render 方法中没有值
+      render: category => {
+        // console.log(category)
+        return <div>
+        <MyButton onClick={this.showUpdateCategoryNameModal(category)}>修改名称</MyButton>
         <MyButton>查看其子品类</MyButton>
       </div>
+      }
     }
   ];
+
+  showUpdateCategoryNameModal = (category) => {
+    return () => {
+      this.setState({
+        category
+      })
+      this.changeModal('isShowUpdateCategoryNameModal', true)();
+    }
+  }
 
   //请求分类数据的方法
   getCategroies = async (parentId) => {
@@ -51,29 +66,69 @@ export default class Category extends Component {
   componentDidMount() {
     this.getCategroies('0');
   }
-
+  //添加分类
   addCategory = () => {
     // 获取的是普通的虚拟DOM对象，它的值就是Dom元素
     // 获取的是组件，它的值就是组件的实例对象
     // console.log(this.createAddForm.current)
     const { validateFields } = this.createAddForm.current.props.form;
     // 表单校验的方法
-    validateFields((err, values) => {
-      console.log(err, values);
+    validateFields(async (err, values) => {
+      // console.log(err, values);
       if (!err) {
         // 校验成功  --> 发送请求 添加分类数据 、隐藏对话框、提示添加分类成功
-
+        const { parentId, categoryName } = values;
+        const result = await reqAddCategory(parentId, categoryName);
+        if (result.status === 0) {
+          //请求成功 ; 隐藏对话框、提示添加分类成功
+          message.success('添加分类成功~');
+          //在tavle中显示添加的分类数据
+          //方式一： 重新请求所有的数据然后更新 方式二：将返回值插入到数据更新 -->减少请求
+          this.setState({
+            isShowAddCategoryModal: false,
+            categories: [...this.state.categories, result.data]
+          });
+          
+        } else {
+          //请求失败
+          message.error(result.msg)
+        }
+        
       } else {
         // 校验失败 -- 啥也不做
       }
     })
   }
 
+  //修改分类名称
+  updateCategoryName = () => {
+    const { validateFields } = this.createUpdateForm.current.props.form;
+    validateFields(async (err, values) => {
+      if (!err) {
+        const { categoryName } = values;
+        const categoryId = this.state.category._id;
+        const result = await reqUpdateCategoryName(categoryId, categoryName);
+        if (result.status === 0) {
+          message.success('更新分类名称成功~');
+          this.setState({
+            isShowUpdateCategoryNameModal: false,
+            categories: this.state.categories.map((category) => { 
+              if (category._id === categoryId) return {...category, name: categoryName};
+              return category;
+            })
+          })
+        } else {
+          message.error(result.msg);
+        }
+      }
+    })
+  }
+
   // 切换对话框显示/隐藏的方法
-  changeModal = (isShow) => {
+  changeModal = (name, isShow) => {
     return () => {
       this.setState({
-        isShowAddCategoryModal: isShow
+        [name]: isShow
       })
     }
   }
@@ -81,13 +136,13 @@ export default class Category extends Component {
   render() {
     //定义表格的列
     
-    const { categories, isShowAddCategoryModal } = this.state;
+    const { categories, isShowAddCategoryModal, isShowUpdateCategoryNameModal, category } = this.state;
 
     return (
       <Card
       className="category"
       title="一级分类列表"
-      extra={<Button type="primary" onClick={this.changeModal(true)}><Icon type="plus" />添加品类</Button>}
+      extra={<Button type="primary" onClick={this.changeModal('isShowAddCategoryModal', true)}><Icon type="plus" />添加品类</Button>}
       >
       <Table
         columns={this.columns}
@@ -106,11 +161,23 @@ export default class Category extends Component {
           title="添加分类"
           visible={isShowAddCategoryModal}
           onOk={this.addCategory}
-          onCancel={this.changeModal(false)}
+          onCancel={this.changeModal('isShowAddCategoryModal', false)}
           okText="确认"
           cancelText="取消"
         >
           <AddCategoryForm categories={categories} wrappedComponentRef={this.createAddForm}/>
+        </Modal>
+
+        <Modal
+          title="修改分类名称"
+          visible={isShowUpdateCategoryNameModal}
+          onOk={this.updateCategoryName}
+          onCancel={this.changeModal('isShowUpdateCategoryNameModal', false)}
+          okText="确认"
+          cancelText="取消"
+          width={300}
+        >
+          <UpdateCategoryNameForm categoryName={category.name} wrappedComponentRef={this.createUpdateForm}/>
         </Modal>
       </Card>
     )
