@@ -3,14 +3,24 @@ import { Card, Icon, Form, Input, Cascader, InputNumber, Button, message } from 
 
 import './save-update.less';
 import { reqGetCategories } from '$api';
+import RichTextEditor from './rich-text-editor';
 
 const Item = Form.Item;
 
-export default class SaveUpdate extends Component {
+@Form.create()
+class SaveUpdate extends Component {
 
-  state = {
-    options: [], //级联选择器的数据数组
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      options: [], //级联选择器的数据数组
+    }
+
+    this.richTextEditor = React.createRef();
   }
+
+  
 
   formItemLayout = {
     //调整Item中label占据多少列
@@ -21,7 +31,7 @@ export default class SaveUpdate extends Component {
     //调整Item的内容占据多少列
     wrapperCol: {
       xs: { span: 24 },
-      sm: { span: 10 },
+      sm: { span: 8 },
     },
   };
 
@@ -34,8 +44,15 @@ export default class SaveUpdate extends Component {
 
   }
   //提交表单的事件
-  submit = () => {
-
+  submit = (e) => {
+    e.preventDefault();
+    //校验表单
+    this.props.form.validateFields((err, values) => {
+      if (!err) {
+        console.log(values);
+        console.log(this.richTextEditor.current.state.editorState.toHTML());
+      }
+    })
   }
 
   //加载二级分类数据
@@ -94,6 +111,7 @@ export default class SaveUpdate extends Component {
 
   render() {
     const { options } = this.state;
+    const { getFieldDecorator } = this.props.form;
 
     return (
       <Card
@@ -101,43 +119,77 @@ export default class SaveUpdate extends Component {
       >
       <Form {...this.formItemLayout} onSubmit={this.submit}>
         <Item label="商品名称">
-          <Input placeholder="请输入商品名称" />
+          {
+            getFieldDecorator(
+              'name',
+              {
+                rules:[{required: true, whiteSpace: true, message: '商品名称不能为空'}]
+              }
+            )(<Input placeholder="请输入商品名称" />)
+          }
+          
         </Item>
         <Item label="商品描述">
-          <Input placeholder="请输入商品描述" />
+        {
+          getFieldDecorator(
+            'desc',
+            {
+              rules:[{required: true, whiteSpace: true, message: '商品描述不能为空'}]
+            }
+          )(<Input placeholder="请输入商品描述" />)
+        }
         </Item>
         <Item label="选择分类"
           wrapperCol={{
             xs: { span: 24 },
-            sm: { span: 5 },
+            sm: { span: 4 },
           }}
         >
-        <Cascader
-          options={options}
-          onChange={this.onChange}
-          placeholder="请选择分类"
-          loadData={this.loadData}
-          changeOnSelect
-        >
-        </Cascader>
+          {
+            getFieldDecorator(
+              'category',
+              {
+                rules:[{required: true, message: '请选择商品分类'}]
+              }
+            )(<Cascader
+                options={options}
+                onChange={this.onChange}
+                placeholder="请选择分类"
+                loadData={this.loadData}
+                changeOnSelect
+              >
+              </Cascader>)
+          }
         </Item>
         <Item label="商品价格"
           wrapperCol={{
               xs: { span: 24 },
-              sm: { span: 5 },
+              sm: { span: 4 },
           }}
         >
-        <InputNumber
-          defaultValue={1000}
-          //每三位数字就有一个逗号,并且开头￥
-          formatter={value => `￥ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-          //去除非数字的内容
-          parser={value => value.replace(/\$\s?|(,*)/g, '')}
-          //onChange={this.onChange}
-        />
+        {
+          getFieldDecorator(
+            'price',
+            {
+              rules:[{required: true, message: '请输入商品价格'}]
+            }
+          )(<InputNumber
+              //每三位数字就有一个逗号,并且开头￥
+              formatter={value => `￥ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+              //去除非数字的内容
+              parser={value => value.replace(/￥\s?|(,*)/g, '')}
+              //onChange={thi.onChange}
+            />)
+        }
+        
         </Item>
-        <Item label="商品详情">
-          
+        <Item label="商品详情"
+          wrapperCol= {{
+            xs: { span: 24 },
+            sm: { span: 21 },
+          }}        
+        >
+          <RichTextEditor ref={this.richTextEditor} />
         </Item>
         <Item>
           <Button type="primary" htmlType="submit">提交</Button>
@@ -147,3 +199,5 @@ export default class SaveUpdate extends Component {
     );
   }
 }
+
+export default SaveUpdate;
