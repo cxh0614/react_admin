@@ -72,31 +72,33 @@ export default class Category extends Component {
   }
 
   getCategories = async (parentId) => {
+
+    this.setState({isLoading: true});
     const result = await reqGetCategories(parentId);
+    
+    const options = {isLoading: true};
+
     if (result.status === 0) {
       // 判断是一级/二级分类
-      const options = {};
 
-      if (result.data.length === 0) {
+      /*if (result.status === 0) {
         this.isLoading = false;
         // 等当前更新完成后在调用，目的：让下一次生效
         setTimeout(() => {
           //不会导致组件重新渲染 
           this.isLoading = true;
         }, 0)
-      }
+      }*/
 
       if (parentId === '0') {
         options.categories = result.data;
       } else {
         options.subCategories = result.data;
       }
-
-      this.setState(options);
-
     } else {
       message.error(result.msg);
     }
+    this.setState(options);
   }
 
   //发送请求获取数据

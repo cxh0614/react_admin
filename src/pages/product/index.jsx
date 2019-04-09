@@ -1,5 +1,6 @@
 import React, { Component, Fragment } from 'react';
 import { Card, Table, Select, Button, Input, Icon, message } from 'antd';
+import { Link } from 'react-router-dom';
 
 import MyButton from '$comp/my-button';
 import { reqgetProducts } from '$api'
@@ -90,7 +91,7 @@ export default class Product extends Component {
           <Button type="primary">搜索</Button>
         </Fragment>
       }
-      extra={<Button type="primary"><Icon type="plus"/>添加产品</Button>}
+      extra={<Link to="/product/saveupdate"><Button type="primary"><Icon type="plus"/>添加产品</Button></Link>}
       //style={{width: "100%"}} 
       className="product"
       >
