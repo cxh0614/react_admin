@@ -26,7 +26,7 @@ class UpdateCategoryNameForm extends Component {
   render() {
     const { form : { getFieldDecorator }, categoryName } = this.props;
     // console.log(this);
-
+    
     return (
       <Form>
         <Item>
