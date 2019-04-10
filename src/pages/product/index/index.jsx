@@ -3,7 +3,7 @@ import { Card, Table, Select, Button, Input, Icon, message } from 'antd';
 import { Link } from 'react-router-dom';
 
 import MyButton from '$comp/my-button';
-import { reqgetProducts } from '$api'
+import { reqgetProducts, reqSearch } from '$api'
 
 import './index.less'
 
@@ -11,10 +11,19 @@ const Option = Select.Option;
 
 export default class Product extends Component {
 
-  state = {
-    products: [], //单页产品数据数组
-    total: 0, //产品总数量
+  constructor(props) {
+    super(props);
+    this.state = {
+      products: [], //单页产品数据数组
+      total: 0, //产品总数量
+      searchType: 'productName',
+      pageNum: 1,
+      pageSize: 3
+    }
+
+    this.searchContentInput = React.createRef();
   }
+
 
   //可复用
   columns = [
@@ -57,25 +66,54 @@ export default class Product extends Component {
   }
 ];
 
-updateProduct = (product) => {
-  return () => {
-    this.props.history.push('/product/saveupdate', product)
+  updateProduct = (product) => {
+    return () => {
+      this.props.history.push('/product/saveupdate', product)
+    }
   }
-}
 
   getProducts = async (pageNum, pageSize = 3) => {
-    const result = await reqgetProducts(pageNum, pageSize);
+    let result = null;
+
+    const { searchType } = this.state;
+    const searchContent = this.searchContent;
+
+    if (searchContent) {
+      //搜索请求
+      result = await reqSearch({
+        [searchType]: searchContent,
+        pageNum,
+        pageSize
+      })
+    } else {
+      result = await reqgetProducts(pageNum, pageSize);
+      
+    }
+
 
     if (result.status === 0) {
       this.setState({
         products: result.data.list,
-        total:  result.data.total
+        total:  result.data.total,
+        pageNum,
+        pageSize
       })
     } else {
       message.error(result.msg)
     }
   }
   
+  handleSelect = (value) => {
+    this.setState({
+      searchType: value
+    })
+  }
+
+  search = () => {
+    this.searchContent = this.searchContentInput.current.state.value;
+    this.getProducts(1)
+  }
+
   componentDidMount() {
     this.getProducts(1)
   }
@@ -83,18 +121,16 @@ updateProduct = (product) => {
   render() {
     const { products, total } = this.state;
      
-
-
     return (
       <Card
       title={
         <Fragment>
-          <Select value={0}>
-            <Option key={0} value={0}>根据商品名称</Option>
-            <Option key={1} value={1}>根据商品描述</Option>
+          <Select defaultValue="productName" onChange={this.handleSelect}>
+            <Option key={0} value="productName">根据商品名称</Option>
+            <Option key={1} value="productDesc">根据商品描述</Option>
           </Select>
-          <Input placeholder="关键字" className="search-input" />
-          <Button type="primary">搜索</Button>
+          <Input placeholder="关键字" className="search-input" ref={this.searchContentInput}/>
+          <Button type="primary" onClick={this.search}>搜索</Button>
         </Fragment>
       }
       extra={<Link to="/product/saveupdate"><Button type="primary"><Icon type="plus"/>添加产品</Button></Link>}
