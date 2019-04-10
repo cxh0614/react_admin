@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Card, Icon, Form, Input, Cascader, InputNumber, Button, message } from 'antd';
 
 import './index.less';
-import { reqGetCategories, reqAddProduct } from '$api';
+import { reqGetCategories, reqAddProduct, reqUpdateProduct } from '$api';
 import RichTextEditor from './rich-text-editor';
 import PicturesWall from './pictures-wall'
 
@@ -65,10 +65,20 @@ class SaveUpdate extends Component {
           categoryId = category[1];
         }
 
-        //发送请求
-        const result = await reqAddProduct({name, desc, price, pCategoryId, categoryId, detail});
+        //判断添加商品还是修改商品
+        const { location: { state }} = this.props;
+        let result = null;
+        let msg = '';
+        if (state) {
+          result = await reqUpdateProduct({name, desc, price, pCategoryId, categoryId, detail, _id: state._id});
+          msg = '修改商品成功~';
+        } else {
+          result = await reqAddProduct({name, desc, price, pCategoryId, categoryId, detail});
+          msg = '添加商品成功~'
+        }
+
         if (result.status === 0) {
-          message.success('添加商品成功~');
+          message.success(msg);
           this.props.history.goBack();
         } else {
           message.error(result.msg)
@@ -129,16 +139,21 @@ class SaveUpdate extends Component {
 
   componentDidMount() {
     this.getCategories('0');
-  }
 
-  composeCategory(pCategoryId, categoryId) {
-    let category = null;
-    if (pCategoryId === '0') {
-      category = [categoryId];
-    } else {
-      category = [pCategoryId, categoryId];
+    const { state } = this.props.location;
+    //有值说明是修改商品
+    if(state) {
+      const { pCategoryId, categoryId } = state;
+      if (pCategoryId === '0') {
+        this.category = [categoryId];
+      } else {
+        //请求二级分类
+        this.getCategories(pCategoryId)
+        this.category = [pCategoryId, categoryId];
+      }
     }
-    return category;
+
+    
   }
 
   render() {
@@ -184,7 +199,7 @@ class SaveUpdate extends Component {
               'category',
               {
                 rules:[{required: true, message: '请选择商品分类'}],
-                initialValue: state ? this.composeCategory(state.pCategoryId, state.categoryId) : []
+                initialValue: state ? this.category : []
               }
             )(<Cascader
                 options={options}
