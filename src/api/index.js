@@ -35,3 +35,6 @@ export const reqUpdateCategoryName = (categoryId, categoryName) => ajax(prefix +
 
 //请求获取产品数据的函数
 export const reqgetProducts = (pageNum, pageSize) => ajax(prefix + '/manage/product/list', {pageNum, pageSize});
+
+//请求添加产品数据的函数
+export const reqAddProduct= (product) => ajax(prefix + '/manage/product/add', product, 'POST');
